@@ -31,7 +31,7 @@ mongoose
 // const testTour = new Tour({
 //   name: 'The Park Camper',
 //   price: 997,
-// });
+// });;
 
 //Start servers
 const port = process.env.PORT || 3000;
