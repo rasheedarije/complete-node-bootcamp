@@ -1,6 +1,7 @@
 const User = require('../models/userModel');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
+const handlerFactory = require('./handlerFactory');
 
 const filterObj = (obj, ...allowedFields) => {
   const newObj = {};
@@ -10,18 +11,19 @@ const filterObj = (obj, ...allowedFields) => {
 
   return newObj;
 };
-exports.getAllUsers = catchAsync(async (req, res, next) => {
-  const users = await User.find();
+exports.getAllUsers = handlerFactory.getAll(User);
+// catchAsync(async (req, res, next) => {
+//   const users = await User.find();
 
-  // Send the result
-  res.status(200).json({
-    status: 'success',
-    results: users.length,
-    data: {
-      users,
-    },
-  });
-});
+//   // Send the result
+//   res.status(200).json({
+//     status: 'success',
+//     results: users.length,
+//     data: {
+//       users,
+//     },
+//   });
+// });
 
 exports.updateMe = catchAsync(async (req, res, next) => {
   // 1) Create error if user POSTs password data
@@ -62,27 +64,21 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
     data: null,
   });
 });
-exports.getUser = (req, res) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'This route is not yet defined',
-  });
-};
+exports.getUser = handlerFactory.getOne(User);
 exports.createUser = (req, res) => {
   res.status(500).json({
     status: 'error',
-    message: 'This route is not yet defined',
+    message: 'This route is not yet defined! Please user signup instead',
   });
 };
-exports.updateUser = (req, res, next) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'This route is not yet defined',
-  });
-};
-exports.deleteUser = (req, res) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'This route is not yet defined',
-  });
-};
+
+// Do Not update passwords with this
+exports.updateUser = handlerFactory.updateOne(User);
+exports.deleteUser = handlerFactory.deleteOne(User);
+
+// (req, res) => {
+//   res.status(500).json({
+//     status: 'error',
+//     message: 'This route is not yet defined',
+//   });
+// };
