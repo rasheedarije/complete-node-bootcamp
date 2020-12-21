@@ -1,11 +1,12 @@
 const mongoose = require('mongoose');
+const Tour = require('./tourModel');
 
 // review user - tour reviewd - review text - createdAt - rating
 const reviewSchema = new mongoose.Schema(
   {
     review: {
       type: String,
-      minlength: [15, 'reviews must be 15 or more characters long.'],
+      minlength: [3, 'reviews must be 15 or more characters long.'],
       maxlength: [255, 'reviews must be 255 or less characters long.'],
       required: [true, 'review must have a text associated.'],
       trim: true,
@@ -42,6 +43,8 @@ const reviewSchema = new mongoose.Schema(
   }
 );
 
+reviewSchema.index({ tour: 1, user: 1 }, { unique: true });
+
 reviewSchema.pre(/^find/, function (next) {
   this //.populate({
     //path: 'tour',
@@ -53,6 +56,53 @@ reviewSchema.pre(/^find/, function (next) {
     });
 
   next();
+});
+
+reviewSchema.statics.calcAverageRatings = async function (tourId) {
+  // console.log(tourId);
+  const stats = await this.aggregate([
+    {
+      $match: { tour: tourId },
+    },
+    {
+      $group: {
+        _id: '$tour',
+        nRating: { $sum: 1 },
+        avgRating: { $avg: '$rating' },
+      },
+    },
+  ]);
+
+  //console.log(stats);
+
+  if (stats.length > 0) {
+    await Tour.findByIdAndUpdate(tourId, {
+      ratingsQuantity: stats[0].nRating,
+      ratingsAverage: stats[0].avgRating,
+    });
+  } else {
+    await Tour.findByIdAndUpdate(tourId, {
+      ratingsQuantity: 0,
+      ratingsAverage: 4.5,
+    });
+  }
+};
+
+reviewSchema.post('save', function () {
+  //this points to current review
+
+  this.constructor.calcAverageRatings(this.tour);
+  // next();
+});
+
+reviewSchema.pre(/^findOneAnd/, async function (next) {
+  this.r = await this.findOne();
+  //console.log(this.r);
+  next();
+});
+
+reviewSchema.post(/^findOneAnd/, async function (next) {
+  await this.r.constructor.calcAverageRatings(this.r.tour);
 });
 
 const Review = mongoose.model('Review', reviewSchema);

@@ -12,6 +12,10 @@ const filterObj = (obj, ...allowedFields) => {
   return newObj;
 };
 exports.getAllUsers = handlerFactory.getAll(User);
+exports.getUser = handlerFactory.getOne(User);
+// Do Not update passwords with this
+exports.updateUser = handlerFactory.updateOne(User);
+exports.deleteUser = handlerFactory.deleteOne(User);
 // catchAsync(async (req, res, next) => {
 //   const users = await User.find();
 
@@ -24,6 +28,11 @@ exports.getAllUsers = handlerFactory.getAll(User);
 //     },
 //   });
 // });
+
+exports.getMe = (req, res, next) => {
+  req.params.id = req.user.id;
+  next();
+};
 
 exports.updateMe = catchAsync(async (req, res, next) => {
   // 1) Create error if user POSTs password data
@@ -44,10 +53,6 @@ exports.updateMe = catchAsync(async (req, res, next) => {
     new: true,
     runValidators: true,
   });
-  // const user = await User.findById(req.user.id);
-  // user.name = req.body.name;
-  // await user.save();
-
   res.status(200).json({
     status: 'success',
     data: {
@@ -64,17 +69,13 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
     data: null,
   });
 });
-exports.getUser = handlerFactory.getOne(User);
+
 exports.createUser = (req, res) => {
   res.status(500).json({
     status: 'error',
     message: 'This route is not yet defined! Please user signup instead',
   });
 };
-
-// Do Not update passwords with this
-exports.updateUser = handlerFactory.updateOne(User);
-exports.deleteUser = handlerFactory.deleteOne(User);
 
 // (req, res) => {
 //   res.status(500).json({
