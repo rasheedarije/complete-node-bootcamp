@@ -1,5 +1,5 @@
 //const fs = require('fs');
-
+const path = require('path');
 const express = require('express');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
@@ -16,7 +16,12 @@ const globalErrorHandler = require('./controllers/errorController');
 
 const app = express();
 
+app.set('view engine', 'pug');
+app.set('views', path.join(__dirname, 'views'));
+
 // 1) global middlewares
+// Serving static files
+app.use(express.static(path.join(__dirname, 'public')));
 //console.log(process.env.NODE_ENV);
 
 if (process.env.NODE_ENV === 'development') {
@@ -61,9 +66,6 @@ app.use(
   })
 );
 
-// Serving static files
-app.use(express.static(`${__dirname}/public`));
-
 // Test middleware: take a look at objects
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
@@ -72,6 +74,25 @@ app.use((req, res, next) => {
 });
 
 //Routes
+app.get('/', (req, res) => {
+  res.status(200).render('base', {
+    tour: 'Exciting tours for adventurous people',
+    user: 'Jonas',
+  });
+});
+
+app.get('/overview', (req, res) => {
+  res.status(200).render('overview', {
+    title: 'All Tours',
+  });
+});
+
+app.get('/tour', (req, res) => {
+  res.status(200).render('tour', {
+    title: 'The Forest Hiker Tour',
+  });
+});
+
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/reviews', reviewRouter);
